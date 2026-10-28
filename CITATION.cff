@@ -1,0 +1,16 @@
+cff-version: 1.2.0
+message: "If you use this environment, please cite it as below."
+title: "AV_Environment-UE5: an Unreal Engine 5 environment for audio-visual vehicle perception"
+authors:
+  - family-names: Vinciguerra
+    given-names: Katerina
+type: software
+license: MIT
+repository-code: "https://github.com/kate-vinci/AV_Environment-UE5"
+date-released: 2026-10-28
+keywords:
+  - Unreal Engine 5
+  - audio-visual perception
+  - autonomous driving
+  - simulation
+  - microphone array

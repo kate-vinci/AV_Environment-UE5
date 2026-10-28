@@ -1,0 +1,15 @@
+# Unreal Engine build and cache folders
+Binaries/
+DerivedDataCache/
+Intermediate/
+Saved/
+.vs/
+*.sln
+*.xcworkspace
+.DS_Store
+
+# Third-party content from Fab: not redistributable, add it locally (see README)
+Content/Fab/
+Content/Megaplant_Library/
+Content/VehicleVarietyPack/
+SourceArt/
