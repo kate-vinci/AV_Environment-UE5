@@ -7,10 +7,10 @@
 ![code: MIT](https://img.shields.io/badge/code-MIT-2da44e)
 ![scene: CC BY 4.0](https://img.shields.io/badge/scene-CC%20BY%204.0-2da44e)
 
-[![The three cameras of the ego vehicle in the hedge environment](media/hero_poster.jpg)](media/hero_3cams.mp4)
+https://github.com/user-attachments/assets/aba2d46f-4043-4d9f-a513-56129dc8e820
 
 *The three cameras of the ego vehicle (left, front, right) in the hedge environment, with the simulated sound of the microphone array
-(stereo mix): a car and a van cross behind the hedge. Click the image to play the video with sound.*
+(stereo mix): a car and a van cross behind the hedge. Play it with the sound on.*
 
 ## Overview
 
