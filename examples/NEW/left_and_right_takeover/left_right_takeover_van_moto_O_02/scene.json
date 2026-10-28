@@ -1,0 +1,20 @@
+{
+ "nom": "left_right_takeover_van_moto_O_02",
+ "zone": "O",
+ "duree_s": 35.0,
+ "ego": {
+  "mode": "driving"
+ },
+ "vehicules": [
+  {
+   "nom": "van_left",
+   "classe": "van",
+   "modele": "t5"
+  },
+  {
+   "nom": "moto_right",
+   "classe": "moto",
+   "modele": "moto"
+  }
+ ]
+}

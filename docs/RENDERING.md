@@ -1,7 +1,7 @@
 # Rendering a run of the companion dataset
 
 This note gives everything needed to render the three cameras of a run of the companion audio dataset in this Unreal Engine 5.8 project, so that the
-images match the audio, the geometry and the labels of the dataset frame by frame.
+images match the audio, the geometry and the labels of the dataset frame by frame. `replay/render_cameras.py` applies all of it (section 7).
 
 ## 1. Inputs, per run (from the dataset)
 
@@ -11,6 +11,7 @@ images match the audio, the geometry and the labels of the dataset frame by fram
 | `scene.json` | `zone` (`W`, `F`, `T` or `O`) and the list `vehicules` (`nom` = name used in `geometry.csv`, `classe` = car / van / moto, `modele` = vehicle model of the new scenarios). |
 
 When two vehicles share a name in `scene.json` (T-junction runs), the second one is `<name>2` in `geometry.csv` (`tc`, `tc2`).
+Any trajectory written in this format can be rendered, not only the runs of the dataset: `examples/` holds two runs to start from.
 
 ## 2. Coordinates
 
@@ -21,7 +22,7 @@ When two vehicles share a name in `scene.json` (T-junction runs), the second one
   within ±15 cm of z = 0: ground, roads, slabs, snow patches). Walls, fences, trees and grass tufts are ignored. The ground is close to z = 0
   everywhere.
 
-## 3. Cameras
+## 3. Cameras and microphones
 
 | | |
 |---|---|
@@ -31,7 +32,14 @@ When two vehicles share a name in `scene.json` (T-junction runs), the second one
 | image | **1224 × 1024** pixels, one frame per row of `geometry.csv` (20 fps) |
 | capture | SceneCapture2D, source *Final Color (LDR)*; after moving the actors, wait 2 editor ticks and render 3 warm-up captures before the saved one (Lumen) |
 
-The microphone array (audio only) is centred at the same horizontal position, 1.90 m above the ground.
+The microphone array (audio only) is centred at the same horizontal position, 1.90 m above the ground: 8 omnidirectional capsules
+45° apart, microphone 0 to the front, numbered clockwise seen from above; even channels on a 28.5 mm radius, odd channels on 21.5 mm.
+
+The level holds these sensors at the parking position of each zone, in the World Outliner folder `Sensors/<zone>`: the cameras
+`Sensors_<zone>_cam0_left`, `Sensors_<zone>_cam1_front`, `Sensors_<zone>_cam2_right` (CameraActor, 1224 × 1024, horizontal FOV
+91.0902°, exposure of the table below) and the microphones `Sensors_<zone>_mic0` … `mic7` (TargetPoint), attached to
+`Sensors_<zone>_rig`. Right-click a camera and choose *Pilot* to see its view. None of them appears in game views or scene captures.
+`replay/add_sensor_rigs.py` places them (`--replace` rebuilds them).
 
 ### Exposure (manual, per zone and per camera)
 
@@ -54,6 +62,8 @@ Post-process override: auto-exposure method *Manual*, *Apply Physical Camera Exp
 Recapture the SkyLight after changing the dome; the new lighting is used from the next frame. Global illumination: Lumen.
 
 ## 4. Vehicles
+
+The meshes below are made once by `replay/build_vehicles.py` from the Fab packs (see the README).
 
 ### Ego vehicle
 
@@ -81,16 +91,51 @@ All vehicle meshes have their pivot on the ground under the centre of the footpr
 - Barrier at W: in the replays of recorded runs (`FEV`, `TJ`) the barrier is **open**: actors `W_barriere_levee_*` visible,
   `W_barriere_fermee_*` hidden. In the new scenarios (`NEW`) it is **closed**: the opposite; vehicles stop in front of it.
 
-## 6. Outputs expected in the dataset (per run)
+## 6. Outputs (per run)
 
 | file | content |
 |---|---|
 | `cameras/cam0.mp4`, `cam1.mp4`, `cam2.mp4` | every frame, 20 fps, H.264 (crf 18), 1224 × 1024 |
 | `frames_1fps.tar` | one JPEG per second and per camera: frame 20·k + 10 (the middle of second k), named `<run>_cam<c>_<frame:05d>.jpg` |
-| `frames_index.csv` | one row per frame: `image`, `time_s`, `zone`, ego position and heading, camera position in UE (cm), file of each camera, positions of the vehicles |
-| `overview_3cams.mp4` | the three cameras side by side with the stereo sound and the labels |
+| `frames_index.csv` | one row per frame: `frame`, `time_s`, `zone`, ego position and heading, camera position in UE (cm), file of each camera, positions of the vehicles |
+| `overview_3cams.mp4` | the three cameras side by side, with the stereo sound when the run holds an audio file |
 
 Frame `i` corresponds to row `i` of `geometry.csv`, taken at `time_s`. The audio (`audio_8ch.flac`, 48 000 samples per second)
 starts at 0 s, so frame `i` matches audio sample `round(time_s × 48000)`. The first row is at 0 s in the new scenarios (`NEW`) and the
-T-junction runs (`TJ`), at 0.05 s in 280 February runs (`FEV`) and at 1.15 s in the 109 others: when muxing frames and sound, skip the first `time_s` seconds of the audio (ffmpeg: `-ss <first time_s>` before
-the audio input). The stereo mix of `overview_3cams.mp4` uses microphone channels 6 (left) and 2 (right) of `audio_8ch.flac`.
+T-junction runs (`TJ`), at 0.05 s in 280 February runs (`FEV`) and at 1.15 s in the 109 others: when muxing frames and sound, skip the
+first `time_s` seconds of the audio (ffmpeg: `-ss <first time_s>` before the audio input). The stereo mix of `overview_3cams.mp4` uses
+microphone channels 6 (left) and 2 (right) of `audio_8ch.flac`.
+
+## 7. Rendering script
+
+`replay/render_cameras.py` does all of the above in the editor: it reads the runs, places the ego vehicle and the vehicles for every row,
+captures the three cameras and writes the files of section 6. It needs no other tool than ffmpeg.
+
+1. Copy `replay/render_config.example.json` to `render_config.json` and set `runs` (run folders) or `runs_root` (every folder below it
+   that holds `geometry.csv` and `scene.json`). Relative paths are read from the folder of the configuration file.
+2. Open the level, then in the Output Log (*Cmd* or *Python*):
+   `py "<path>/replay/render_cameras.py" "<path>/render_config.json"`
+3. The editor stays usable: the work advances one step per editor tick. Progress is in the Output Log and in `render_status.json`
+   next to the configuration file. Creating the file `STOP_RENDER` next to the configuration file stops the batch between two runs.
+
+Per frame: the ego and the vehicles are moved (ground trace, + 1 cm), 2 editor ticks pass, then for each camera the SceneCapture2D is
+moved, its exposure set, 3 warm-up captures and 1 saved capture are rendered, and the image is written as a JPEG (quality 95,
+asynchronous). After the last frame the script waits for the files, encodes the videos with ffmpeg, keeps the JPEGs of frames
+20·k + 10 (`frames_1fps.tar`), writes `frames_index.csv` and `overview_3cams.mp4`. A run whose images come out dark (sky light not
+recaptured after a zone change) is rendered again. Runs already rendered are skipped. The states the script changes in the level
+(barrier, hidden actors) are restored at the end; the actors it adds are transient and removed.
+
+Main settings of the configuration file:
+
+| key | default | meaning |
+|---|---|---|
+| `content_root` | found automatically | content folder that holds `Vehicules/` and `Materiaux/` |
+| `output_subdir` | `""` | outputs in `<run>/<output_subdir>/` |
+| `t_min`, `t_max`, `frame_step` | 0, all, 1 | part of the run and frame step (1 = 20 fps) |
+| `warmup_captures`, `ticks_after_move` | 3, 2 | Lumen warm-up captures per image, editor ticks after moving the actors |
+| `overview`, `frames_1fps_tar`, `keep_frames` | true, true, false | overview video, 1 fps archive, keep every captured frame |
+| `closed_barrier_splits` | `["NEW"]` | runs under a folder with this name get the closed barrier of zone W |
+| `hide_prefixes` | `["ego_W_"]` | actors hidden during the renders (label prefixes) |
+| `ffmpeg` | found on the PATH | path of ffmpeg |
+
+Rendering time with the settings above (Apple M-series laptop): 0.25 s per frame of three cameras in zone O, 0.5 to 0.75 s in W, F and T.

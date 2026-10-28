@@ -1,0 +1,25 @@
+{
+ "nom": "hedge_3_both_sides_B_W_01",
+ "zone": "W",
+ "duree_s": 30.0,
+ "ego": {
+  "mode": "static"
+ },
+ "vehicules": [
+  {
+   "nom": "moto",
+   "classe": "moto",
+   "modele": "moto"
+  },
+  {
+   "nom": "van",
+   "classe": "van",
+   "modele": "idbuzz"
+  },
+  {
+   "nom": "car",
+   "classe": "car",
+   "modele": "tc"
+  }
+ ]
+}

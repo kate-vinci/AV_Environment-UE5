@@ -26,8 +26,9 @@ flowchart LR
     D --> E
 ```
 
-> **Status.** The scenario designer and the rendering documentation are available now. The Unreal Engine project files (level, materials,
-> site meshes) and the replay scripts are being prepared and will be added to this repository.
+This repository holds the Unreal Engine project (level, materials, site meshes, sensors), the scenario designer and the scripts that
+build the vehicles and render the cameras of a run. The trajectories and the audio of the runs come with the companion dataset; any
+trajectory written in the same format can be rendered ([`docs/RENDERING.md`](docs/RENDERING.md), section 1).
 
 ## Environments
 
@@ -62,35 +63,34 @@ second below.*
 | cameras | 3 (left, front, right), 1224 × 1024, horizontal FOV 91.09°, 20 fps, 1.99 m |
 | microphones | 8-channel array, centre 1.90 m above the ground, 48 kHz |
 
-Full rendering specification (coordinates, camera rig, exposure, sky, vehicles, outputs, audio alignment):
+The level holds the cameras and the microphones of the ego vehicle at the parking position of each zone (World Outliner folder
+`Sensors`). Full rendering specification (coordinates, camera rig, exposure, sky, vehicles, outputs, audio alignment):
 [`docs/RENDERING.md`](docs/RENDERING.md).
 
 ## Repository
 
 ```
 AV_Environment-UE5/
+├── AV_Environment.uproject  Unreal Engine 5.8 project (Blueprint only, no C++)
+├── Config/                  rendering settings: Lumen, virtual shadow maps, ray tracing, DirectX 12 SM6
+├── Content/
+│   ├── Maps/Site.umap       the level: four environments in one GPS-aligned map, with the sensors
+│   ├── Site/Scene/          buildings, roads and ground of the site
+│   └── SiteSim/             materials, ground surfaces, sky, CC BY vehicles (police car, ambulance)
+├── replay/
+│   ├── build_vehicles.py    builds the vehicle meshes, textures and materials from the Fab packs (once)
+│   ├── render_cameras.py    renders the three cameras of runs (videos, 1 fps images, frame index, overview)
+│   ├── render_config.example.json
+│   └── add_sensor_rigs.py   places the cameras and microphones of the ego vehicle in the level
+├── examples/NEW/            two runs (geometry.csv + scene.json): zone W with a closed barrier, zone O with a driving ego
 ├── designer/index.html      scenario designer, a single web page
 ├── docs/RENDERING.md        frames, camera rig, exposure, sky, vehicles, outputs
 ├── media/                   images and videos of this page
 ├── LICENSE                  MIT (code) and CC BY 4.0 (scene, documentation)
-├── CITATION.cff
-│
-│   to be added with the project files:
-├── AV_Environment.uproject  Unreal Engine 5.8 project (Blueprint only, no C++)
-├── Config/                  rendering settings: Lumen, virtual shadow maps, DirectX 12 SM6
-├── Content/
-│   ├── Maps/Site.umap       the level: four environments in one GPS-aligned map
-│   ├── SiteSim/             materials, ground surfaces, sky, CC BY vehicles
-│   └── Site/                buildings and site meshes
-└── replay/
-    ├── build_vehicles.py    builds the vehicle meshes from the Fab packs
-    └── render_run.py        renders the three cameras of a run
+└── CITATION.cff
 ```
 
 ## Installation
-
-The scenario designer needs no installation: open `designer/index.html` in a browser. The steps below apply once the project files are
-added.
 
 1. **Install Unreal Engine 5.8.** Windows and macOS: Epic Games Launcher → *Unreal Engine* → *Library* → *+* next to *Engine Versions* →
    5.8 → *Install*. Linux: download the Linux build from the Unreal Engine website, or build it from source.
@@ -99,30 +99,32 @@ added.
    git clone https://github.com/kate-vinci/AV_Environment-UE5.git
    ```
    or *Code → Download ZIP* on this page.
-3. **Add the Fab content** listed below. On fab.com, add each item to your library, then: packs → Epic Games Launcher → *Fab Library* →
-   *Add to Project* → `AV_Environment`; Megascans → in the editor, *Window → Fab*, search the name, *Add to Project*. Keep the default
-   folders: the level finds them there. The van is a plain download: unzip its OBJ format into `SourceArt/Standard_Delivery_Van`.
+3. **Add the Fab content** listed below (all free). On fab.com, add each item to your library, then: packs → Epic Games Launcher →
+   *Fab Library* → *Add to Project* → `AV_Environment`; Megascans and Megaplants → in the editor, *Window → Fab* (or the *Fab* button
+   of the Content Drawer) → *My Library* → *+* on the item, with the Megascans quality tier left on *Medium* (the default). Keep the
+   default folders: the level finds them there. The van is a plain download: put `003.obj` and
+   `Base_Texture.png` of its OBJ format into `SourceArt/Standard_Delivery_Van/` (create the folder next to `AV_Environment.uproject`).
 
    | Fab content | items used by the level | lands in |
    |---|---|---|
-   | Megaplant Library | Baltic Pine, Black Alder, Black Poplar, Goat Willow, Hornbeam, Norway Spruce, Aleppo Pine | `Content/Megaplant_Library` |
+   | Quixel Megaplants | Baltic Pine, Black Alder, Black Poplar, Goat Willow, Hornbeam, Norway Spruce | `Content/Megaplant_Library` |
    | Megascans plants | Dry Grass `tbbqejqr`, Thatching Grass `uddmcgbia`, Wild Grass `vczndjqja` | `Content/Fab/Megascans/Plants` |
    | Megascans surfaces | Road Asphalt `rh0ribp0`, Gravel Ground `xbnfagf`, Brick Wall `wgukbfj` | `Content/Fab/Megascans/Surfaces` |
-   | Vehicle Variety Pack | hatchback (base of the three cars) | `Content/VehicleVarietyPack` |
-   | Standard Delivery Van (Slowpoly) | base of the two vans (OBJ download) | `SourceArt/Standard_Delivery_Van` |
+   | Vehicle Variety Pack (Switchboard Studios) | hatchback (base of the three cars) | `Content/VehicleVarietyPack` |
    | Motorcycle Photoscan LOWPOLY | motorcycle | `Content/Fab/Motorcycle_Photoscan_LOWPOLY` |
+   | Standard Delivery Van (Slowpoly) | base of the two vans (OBJ format) | `SourceArt/Standard_Delivery_Van` |
 
 4. **Open the project.** Double-click `AV_Environment.uproject` (or *Launcher → Library → Browse*). There is no C++ code, so nothing to
    compile. The first opening compiles the shaders, which takes a while; the level opens by itself.
-5. **Build the vehicles** (once). In the editor: *Tools → Execute Python Script…* → `replay/build_vehicles.py`. It creates the cars, vans
-   and motorcycle in `Content/SiteSim/Vehicles` from the Fab packs.
-6. **Draw a scenario.** Open `designer/index.html` in a browser, pick a preset in *Catalogue* or draw paths, then *Export JSON*.
-7. **Render a run.** In the editor, *Output Log*, switch the input from *Cmd* to *Python*:
-   ```
-   py "replay/render_run.py" --run "path/to/run" --cameras 0,1,2
-   ```
-   The frames go to `path/to/run/cameras/`; `ffmpeg` on the PATH encodes them to MP4 at 20 fps. Details:
+5. **Build the vehicles** (once). In the editor: *Tools → Execute Python Script…* → `replay/build_vehicles.py`. In about a minute it
+   creates the cars, vans and motorcycle in `Content/SiteSim/Vehicules` from the Fab packs; the Output Log shows the progress and ends
+   with `done`. The meshes are identical to the ones of the dataset renders.
+6. **Render a run.** Copy `replay/render_config.example.json` to `replay/render_config.json` (it renders the runs of `examples/`), then
+   *Tools → Execute Python Script…* → `replay/render_cameras.py`. Each run gets `cameras/cam0.mp4`, `cam1.mp4`, `cam2.mp4`,
+   `frames_1fps.tar`, `frames_index.csv` and `overview_3cams.mp4`. It needs `ffmpeg` on the PATH. Another configuration file can be
+   given in the Output Log (*Python* mode): `py "<full path>/replay/render_cameras.py" "<full path>/my_config.json"`. Details:
    [`docs/RENDERING.md`](docs/RENDERING.md).
+7. **Draw a scenario.** Open `designer/index.html` in a browser, pick a preset in *Catalogue* or draw paths, then *Export JSON*.
 
 ## License and citation
 

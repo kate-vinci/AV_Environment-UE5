@@ -13,3 +13,27 @@ Content/Fab/
 Content/Megaplant_Library/
 Content/VehicleVarietyPack/
 SourceArt/
+
+# Python cache
+__pycache__/
+*.pyc
+
+# Vehicles built from the Fab packs by replay/build_vehicles.py: not redistributable
+Content/SiteSim/Vehicules/SM_car_*.uasset
+Content/SiteSim/Vehicules/SM_van_*.uasset
+Content/SiteSim/Vehicules/SM_moto*.uasset
+Content/SiteSim/Vehicules/Materiaux/
+Content/SiteSim/Vehicules/Textures/
+Content/SiteSim/Vehicules/van_livraison/
+Content/SiteSim/Vehicules/_src/van_livraison/
+
+# Outputs of replay/render_cameras.py
+replay/render_config.json
+replay/render_status.json
+replay/STOP_RENDER
+examples/**/cameras/
+examples/**/frames_1fps/
+examples/**/frames_1fps.tar
+examples/**/frames_index.csv
+examples/**/overview_3cams.mp4
+examples/**/_frames/
