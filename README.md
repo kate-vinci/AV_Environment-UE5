@@ -2,6 +2,7 @@
 
 **Katerina Vinciguerra**
 
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.23749372.svg)](https://doi.org/10.5281/zenodo.23749372)
 ![Unreal Engine 5.8](https://img.shields.io/badge/Unreal%20Engine-5.8-0b7fbd)
 ![macOS · Windows · Linux](https://img.shields.io/badge/platforms-macOS%20%C2%B7%20Windows%20%C2%B7%20Linux-0b7fbd)
 ![code: MIT](https://img.shields.io/badge/code-MIT-2da44e)
@@ -135,11 +136,14 @@ RCC Design (Fab), modified. Copyright © 2026 Katerina Vinciguerra.
 If you use this environment, please cite:
 
 ```bibtex
-@misc{vinciguerra2026avenvironment,
-  author       = {Katerina Vinciguerra},
-  title        = {AV_Environment-UE5: an Unreal Engine 5 environment
-                  for audio-visual vehicle perception},
-  year         = {2026},
-  howpublished = {\url{https://github.com/kate-vinci/AV_Environment-UE5}}
+@software{vinciguerra2026avenvironment,
+  author    = {Katerina Vinciguerra},
+  title     = {AV_Environment-UE5: an Unreal Engine 5 environment
+               for audio-visual vehicle perception},
+  year      = {2026},
+  version   = {1.0.0},
+  publisher = {Zenodo},
+  doi       = {10.5281/zenodo.23749372},
+  url       = {https://doi.org/10.5281/zenodo.23749372}
 }
 ```

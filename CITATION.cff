@@ -5,6 +5,8 @@ authors:
   - family-names: Vinciguerra
     given-names: Katerina
 type: software
+version: 1.0.0
+doi: 10.5281/zenodo.23749372
 license: MIT
 repository-code: "https://github.com/kate-vinci/AV_Environment-UE5"
 date-released: 2026-10-28
